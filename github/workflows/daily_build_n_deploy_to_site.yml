@@ -1,0 +1,214 @@
+name: Daily Test, Build and Deploy to Website
+
+on:
+  schedule:
+    - cron: '0 3 * * *'  # daily at 03:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+      - name: Run tests
+        run: mvn --batch-mode --update-snapshots verify
+  build-and-package:
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      # Install JavaFX for each platform
+      - name: Install JavaFX (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y openjfx
+
+      - name: Download JavaFX SDK (Windows/macOS)
+        if: matrix.os != 'ubuntu-latest'
+        run: |
+          curl -L -o javafx.zip https://download2.gluonhq.com/openjfx/21.0.2/openjfx-21.0.2_${{ matrix.os == 'windows-latest' && 'windows' || 'osx' }}-x64_bin-sdk.zip
+          unzip javafx.zip -d ${{ runner.temp }}
+
+      - name: Build with Maven
+        run: mvn clean package
+
+      - name: Find JAR name
+        id: find_jar
+        shell: bash
+        run: echo "JAR_NAME=$(basename target/*jar-with-dependencies.jar)" >> $GITHUB_ENV
+
+      - name: Create custom runtime image (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          jlink `
+            --module-path "${{ runner.temp }}/javafx-sdk-21.0.2/lib;${env:JAVA_HOME}\jmods" `
+            --add-modules java.base,javafx.controls,javafx.fxml,javafx.graphics,jdk.unsupported,java.sql `
+            --output "${{ runner.temp }}/my-runtime"
+        shell: pwsh
+
+      - name: Copy JavaFX native DLLs (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          Copy-Item "${{ runner.temp }}/javafx-sdk-21.0.2/bin/*.dll" -Destination "${{ runner.temp }}/my-runtime/bin"
+        shell: pwsh
+
+      # Package as app-image for each platform
+      - name: Package as app-image (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          jpackage \
+            --input target/ \
+            --name MyApp \
+            --main-jar $JAR_NAME \
+            --main-class de.htwsaar.presentation.Launcher \
+            --module-path /usr/share/openjfx/lib \
+            --type app-image \
+            --java-options "-Dprism.order=sw" \
+            --add-modules javafx.controls,javafx.fxml
+
+      - name: Copy DB file into app image folder (Unix)
+        if: matrix.os != 'windows-latest'
+        run: |
+          mkdir -p MyApp/data
+          cp data/Exchange_Rates.db MyApp/data/
+
+      - name: Package as app-image (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          jpackage `
+            --input target/ `
+            --name MyApp `
+            --main-jar ${{ env.JAR_NAME }} `
+            --main-class de.htwsaar.presentation.Launcher `
+            --runtime-image "${{ runner.temp }}/my-runtime" `
+            --type app-image `
+            --java-options "-Dprism.order=sw -Dprism.verbose=true -Dprism.forceGPU=false" `
+        shell: pwsh
+
+      - name: Copy DB file into app image folder (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          mkdir -Force MyApp\data
+          Copy-Item data\Exchange_Rates.db MyApp\data\
+        shell: pwsh
+
+      - name: Package as app-image (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          jpackage \
+            --input target/ \
+            --name MyApp \
+            --main-jar $JAR_NAME \
+            --main-class de.htwsaar.presentation.Launcher \
+            --module-path "${{ runner.temp }}/javafx-sdk-21.0.2/lib" \
+            --add-modules javafx.controls,javafx.fxml \
+            --type app-image \
+            --java-options "-Dprism.order=sw" \
+
+      # Zip the correct output for each platform
+      - name: Zip app-image (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: zip -r MyApp-ubuntu-app-image.zip MyApp/
+
+      - name: Zip app-image (macOS)
+        if: matrix.os == 'macos-latest'
+        run: zip -r MyApp-macos-app-image.zip MyApp.app
+
+      - name: Zip app-image (Windows)
+        if: matrix.os == 'windows-latest'
+        run: powershell Compress-Archive -Path MyApp\* -DestinationPath MyApp-windows-app-image.zip
+
+      # Upload the correct artifact for each platform
+      - name: Upload app-image as artifact (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyApp-Linux-DoubleClick-App
+          path: MyApp-ubuntu-app-image.zip
+
+      - name: Upload app-image as artifact (macOS)
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyApp-macOS-DoubleClick-App
+          path: MyApp-macos-app-image.zip
+
+      - name: Upload app-image as artifact (Windows)
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyApp-Windows-DoubleClick-App
+          path: MyApp-windows-app-image.zip
+
+  prepare-and-deploy-site:
+    runs-on: ubuntu-latest
+    needs: build-and-package
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Build Maven site
+        run: mvn clean site
+
+      # Download build artifacts from the build job
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: MyApp-Linux-DoubleClick-App
+          path: downloads/linux
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: MyApp-macOS-DoubleClick-App
+          path: downloads/macos
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: MyApp-Windows-DoubleClick-App
+          path: downloads/windows
+
+      # Copy artifacts into the site directory
+      - name: Copy artifacts into site downloads
+        run: |
+          mkdir -p target/site/downloads
+          cp downloads/linux/*.zip target/site/downloads/ || true
+          cp downloads/macos/*.zip target/site/downloads/ || true
+          cp downloads/windows/*.zip target/site/downloads/ || true
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: target/site
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
