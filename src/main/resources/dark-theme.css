@@ -1,0 +1,225 @@
+/* ==== General background and text ==== */
+.root, .background, .stack-pane, .border-pane, .vbox, .hbox {
+    -fx-background-color: #23272e;
+    -fx-text-fill: #f3f3f3;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-font-size: 14px;
+}
+
+/* ==== Info box ==== */
+.infobox {
+    -fx-background-color: #23272e;
+    -fx-border-color: #374151;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-padding: 18 18 14 18;
+    -fx-effect: dropshadow(gaussian, #00000088, 8, 0.3, 0, 2);
+}
+.infobox-line1 {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #f3f3f3;
+}
+.infobox-line2 {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #8fbcd4; /* Muted blue for conversion result */
+}
+.infobox-line3 {
+    -fx-font-size: 13px;
+    -fx-text-fill: #a0aec0;
+}
+
+/* ==== ComboBoxes and TextFields ==== */
+.combo-box, .combo-box-base, .text-field {
+    -fx-background-color: #2d333b;
+    -fx-border-color: #374151;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-text-fill: #f3f3f3;
+    -fx-prompt-text-fill: #a0aec0;
+}
+.combo-box .list-cell, .combo-box-popup .list-cell {
+    -fx-background: #2d333b;
+    -fx-text-fill: #f3f3f3;
+}
+.combo-box:focused, .text-field:focused {
+    -fx-border-color: #8fbcd4;
+    -fx-background-color: #23272e;
+}
+.text-field:disabled, .combo-box:disabled {
+    -fx-opacity: 0.5;
+}
+
+/* ==== Buttons ==== */
+.button {
+    -fx-background-color: #374151;
+    -fx-text-fill: #f3f3f3;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-border-color: transparent;
+    -fx-padding: 7 18 7 18;
+    -fx-font-weight: 500;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, #00000044, 2, 0.2, 0, 1);
+    -fx-transition: all 0.2s;
+}
+.button:hover, .button:focused {
+    -fx-background-color: #8fbcd4;
+    -fx-text-fill: #23272e;
+}
+.button:pressed {
+    -fx-background-color: #6a8a9e;
+    -fx-text-fill: #f3f3f3;
+}
+
+/* ==== Progress indicator and loading overlay ==== */
+.progress-indicator, .progress-bar, .loading-progress-bar {
+    -fx-accent: #8fbcd4;
+    -fx-background-color: #2d333b;
+}
+.loading-box {
+    -fx-background-color: #23272ecc;
+    -fx-background-radius: 12px;
+    -fx-padding: 30 30 30 30;
+    -fx-alignment: center;
+    -fx-effect: dropshadow(gaussian, #00000099, 20, 0.5, 0, 2);
+}
+.loading-label {
+    -fx-text-fill: #f3f3f3;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+.loading-error-label {
+    -fx-text-fill: #e57373;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+/* Chart main background */
+.chart {
+    -fx-background-color: #23272e;
+}
+
+/* Plot area background: deep, matte gray */
+.chart-plot-background {
+    -fx-background-color: #23272e;
+}
+
+/* X and Y axis lines: soft, low-contrast gray */
+.axis {
+    -fx-tick-label-fill: #a0aec0;
+    -fx-label-fill: #f3f3f3;
+    -fx-stroke: #374151;
+}
+
+/* Grid lines: very subtle, dark gray (almost invisible, just enough for orientation) */
+.chart-horizontal-grid-lines,
+.chart-vertical-grid-lines {
+    -fx-stroke: #2d333b;
+    -fx-opacity: 0.7;
+}
+
+/* Minor grid lines: even more subtle */
+.chart-horizontal-grid-lines .chart-minor-tick,
+.chart-vertical-grid-lines .chart-minor-tick {
+    -fx-stroke: #23272e;
+    -fx-opacity: 0.4;
+}
+
+/* Chart legend and labels */
+.chart-legend {
+    -fx-background-color: transparent;
+    -fx-text-fill: #f3f3f3;
+}
+.label, .text {
+    -fx-text-fill: #f3f3f3;
+}
+
+/* Chart series lines: muted, as in previous answer */
+.default-color0.chart-series-line { -fx-stroke: #8fbcd4; }
+.default-color1.chart-series-line { -fx-stroke: #b8a1c7; }
+.default-color2.chart-series-line { -fx-stroke: #b4bfa9; }
+.default-color3.chart-series-line { -fx-stroke: #a7c7b8; }
+.default-color4.chart-series-line { -fx-stroke: #c7b4a1; }
+.default-color5.chart-series-line { -fx-stroke: #a1b8c7; }
+.default-color6.chart-series-line { -fx-stroke: #c7a1b8; }
+.default-color7.chart-series-line { -fx-stroke: #b8c7a1; }
+.chart-series-line {
+    -fx-stroke-width: 1.5px;
+    -fx-effect: null;
+}
+
+/* Chart points (symbols) - subtle, matching lines */
+.default-color0.chart-line-symbol { -fx-background-color: #8fbcd4, white; }
+.default-color1.chart-line-symbol { -fx-background-color: #b8a1c7, white; }
+.default-color2.chart-line-symbol { -fx-background-color: #b4bfa9, white; }
+.default-color3.chart-line-symbol { -fx-background-color: #a7c7b8, white; }
+.default-color4.chart-line-symbol { -fx-background-color: #c7b4a1, white; }
+.default-color5.chart-line-symbol { -fx-background-color: #a1b8c7, white; }
+.default-color6.chart-line-symbol { -fx-background-color: #c7a1b8, white; }
+.default-color7.chart-line-symbol { -fx-background-color: #b8c7a1, white; }
+
+/* ScrollBar Track: dark, but not black */
+.scroll-bar:vertical .track,
+.scroll-bar:horizontal .track {
+    -fx-background-color: #23272e;
+    -fx-background-radius: 5px;
+}
+
+/* ScrollBar Thumb: lighter gray, always visible */
+.scroll-bar:vertical .thumb,
+.scroll-bar:horizontal .thumb {
+    -fx-background-color: #49505a;
+    -fx-background-insets: 1;
+    -fx-background-radius: 5px;
+    -fx-opacity: 1;
+    -fx-effect: dropshadow(gaussian, #00000044, 2, 0.2, 0, 1);
+    -fx-border-color: #374151;
+    -fx-border-radius: 5px;
+}
+
+/* Thumb on hover/focus: accent color for feedback */
+.scroll-bar:vertical .thumb:hover,
+.scroll-bar:horizontal .thumb:hover,
+.scroll-bar:vertical .thumb:pressed,
+.scroll-bar:horizontal .thumb:pressed {
+    -fx-background-color: #8fbcd4;
+}
+
+/* ScrollBar Buttons: subtle, minimal */
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: #23272e;
+    -fx-border-color: transparent;
+}
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-background-color: #a0aec0;
+}
+
+/* ScrollBar corner (bottom-right square) */
+.scroll-pane .corner {
+    -fx-background-color: #23272e;
+}
+
+/* ==== Alerts ==== */
+.dialog-pane {
+    -fx-background-color: #23272e;
+}
+.dialog-pane .content.label {
+    -fx-text-fill: #f3f3f3;
+}
+.dialog-pane .header-panel .label {
+    -fx-text-fill: #8fbcd4;
+}
+.dialog-pane .button {
+    -fx-background-color: #8fbcd4;
+    -fx-text-fill: #23272e;
+}
+
+/* ==== Miscellaneous ==== */
+.label, .text {
+    -fx-text-fill: #f3f3f3;
+}
